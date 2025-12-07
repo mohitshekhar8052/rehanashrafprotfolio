@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 import { Github, ExternalLink, Database, Layout, CheckSquare } from "lucide-react";
 
 const projects = [
@@ -44,9 +45,22 @@ const projects = [
 ];
 
 const Projects = () => {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [50, -50]);
+
   return (
-    <section id="projects" className="section-padding">
-      <div className="max-w-6xl mx-auto">
+    <section id="projects" className="section-padding relative" ref={ref}>
+      <motion.div 
+        style={{ y }}
+        className="absolute -left-32 top-1/3 w-72 h-72 bg-accent/5 rounded-full blur-3xl"
+      />
+      
+      <div className="max-w-6xl mx-auto relative">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -64,17 +78,25 @@ const Projects = () => {
           {projects.map((project, index) => (
             <motion.div
               key={project.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              initial={{ opacity: 0, y: 50, rotateX: 10 }}
+              whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.15 }}
               viewport={{ once: true }}
-              className="group glass-card rounded-2xl p-6 hover-lift flex flex-col"
+              whileHover={{ 
+                y: -10,
+                boxShadow: "0 30px 60px hsl(0 0% 0% / 0.4), 0 0 40px hsl(174 72% 50% / 0.15)",
+              }}
+              className="group glass-card rounded-2xl p-6 flex flex-col cursor-pointer"
             >
-              <div className={`inline-flex p-3 rounded-xl mb-4 w-fit ${
-                project.color === "accent" ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
-              }`}>
+              <motion.div 
+                className={`inline-flex p-3 rounded-xl mb-4 w-fit ${
+                  project.color === "accent" ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary"
+                }`}
+                whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
+                transition={{ duration: 0.5 }}
+              >
                 <project.icon size={28} />
-              </div>
+              </motion.div>
 
               <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                 {project.title}
@@ -85,42 +107,57 @@ const Projects = () => {
               </p>
 
               <ul className="space-y-2 mb-6">
-                {project.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className={`w-1.5 h-1.5 rounded-full ${
-                      project.color === "accent" ? "bg-accent" : "bg-primary"
-                    }`} />
+                {project.features.map((feature, featureIndex) => (
+                  <motion.li 
+                    key={feature} 
+                    className="flex items-center gap-2 text-sm text-muted-foreground"
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 * featureIndex }}
+                  >
+                    <motion.div 
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        project.color === "accent" ? "bg-accent" : "bg-primary"
+                      }`}
+                      whileHover={{ scale: 2 }}
+                    />
                     {feature}
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
 
               <div className="flex flex-wrap gap-2 mb-6">
-                {project.tech.map((tech) => (
-                  <span
+                {project.tech.map((tech, techIndex) => (
+                  <motion.span
                     key={tech}
                     className="px-2 py-1 text-xs font-mono bg-secondary rounded text-muted-foreground"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.05 * techIndex }}
+                    whileHover={{ scale: 1.1, color: "hsl(174 72% 50%)" }}
                   >
                     {tech}
-                  </span>
+                  </motion.span>
                 ))}
               </div>
 
               <div className="flex gap-4 mt-auto pt-4 border-t border-border/50">
-                <a
+                <motion.a
                   href="#"
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                  whileHover={{ x: 3 }}
                 >
                   <Github size={18} />
                   Code
-                </a>
-                <a
+                </motion.a>
+                <motion.a
                   href="#"
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                  whileHover={{ x: 3 }}
                 >
                   <ExternalLink size={18} />
                   Live Demo
-                </a>
+                </motion.a>
               </div>
             </motion.div>
           ))}
